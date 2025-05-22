@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>수학 계산기</title>
+  <title>다중 그래프 수학 계산기</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/function-plot/1.20.0/function-plot.min.js"></script>
   <style>
     body {
@@ -10,6 +10,19 @@
       background: #f4f6f9;
       padding: 30px;
       text-align: center;
+      margin-right: 180px; /* 광고 공간 확보 */
+    }
+
+    .ad-container {
+      position: fixed;
+      right: 0;
+      top: 0;
+      width: 160px;
+      height: 100vh;
+      z-index: 1000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
 
     h1 {
@@ -107,8 +120,16 @@
   </style>
 </head>
 <body>
+  <!-- 광고 영역 -->
+  <div class="ad-container">
+    <ins class="kakao_ad_area" style="display:none;"
+    data-ad-unit = "DAN-3yR2TTH8GiPZXjbK"
+    data-ad-width = "160"
+    data-ad-height = "600"></ins>
+    <script type="text/javascript" src="//t1.daumcdn.net/kas/static/ba.min.js" async></script>
+  </div>
 
-  <h1>📊 계산기</h1>
+  <h1>📊 다중 함수 그래프 수학 계산기</h1>
 
   <div class="section">
     <div id="clock">현재 시각: 로딩 중...</div>
@@ -135,7 +156,7 @@
   </div>
 
   <div class="section">
-    <h2>📈 함수 그래프 그리기</h2>
+    <h2>📈 여러 함수 그래프 그리기</h2>
     <div class="help-text">
       사용 가능한 함수: x^2, sin(x), cos(x), tan(x), log(x), sqrt(x), abs(x), exp(x) 등<br>
       예시: x^2 + 2*x - 1, sin(x) * cos(x), log(x + 1)
@@ -290,7 +311,7 @@
               const roundedX = Math.round(x * 100) / 100;
               const roundedY = Math.round(y * 100) / 100;
               const functionLabel = data[index] ? data[index].label : '';
-              return `${functionLabel} : ${roundedX},${roundedY}`;
+              return `${functionLabel}<br>x: ${roundedX}, y: ${roundedY}`;
             }
           }
         });
