@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>수학 계산기</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/function-plot/1.20.0/function-plot.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: #f4f6f9;
+      padding: 30px;
+      text-align: center;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .section {
+      background-color: white;
+      border-radius: 10px;
+      padding: 20px;
+      margin: 20px auto;
+      box-shadow: 0 5px 10px rgba(0,0,0,0.1);
+      max-width: 700px;
+    }
+
+    input, select, button {
+      padding: 10px;
+      font-size: 16px;
+      margin: 8px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    .function-input {
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+
+    .function-input input {
+      margin: 2px;
+    }
+
+    .color-indicator {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      border: 2px solid #333;
+      display: inline-block;
+      margin-right: 5px;
+    }
+
+    .remove-btn {
+      background-color: #dc3545;
+      padding: 5px 10px;
+      font-size: 14px;
+    }
+
+    .remove-btn:hover {
+      background-color: #c82333;
+    }
+
+    #result {
+      font-size: 20px;
+      margin-top: 20px;
+      color: green;
+    }
+
+    #clock {
+      font-size: 24px;
+      font-weight: bold;
+      color: #444;
+    }
+
+
+
+    .error-message {
+      color: #dc3545;
+      font-size: 14px;
+      margin-top: 10px;
+      padding: 10px;
+      background-color: #f8d7da;
+      border: 1px solid #f5c6cb;
+      border-radius: 5px;
+    }
+
+    .help-text {
+      font-size: 12px;
+      color: #666;
+      margin-top: 5px;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>📊 계산기</h1>
+
+  <div class="section">
+    <div id="clock">현재 시각: 로딩 중...</div>
+  </div>
+
+  <div class="section">
+    <h2>🧮 계산기</h2>
+    <input type="number" id="num1" placeholder="숫자 1">
+    <select id="operation">
+      <option value="add">더하기 (+)</option>
+      <option value="subtract">빼기 (-)</option>
+      <option value="multiply">곱하기 (×)</option>
+      <option value="divide">나누기 (÷)</option>
+      <option value="power">거듭제곱 (^)</option>
+      <option value="sqrt">제곱근 (√)</option>
+      <option value="log">로그 (log₁₀)</option>
+      <option value="ln">자연로그 (ln)</option>
+      <option value="factorial">팩토리얼 (!)</option>
+    </select>
+    <input type="number" id="num2" placeholder="숫자 2 (필요 시)">
+    <br>
+    <button onclick="calculate()">계산하기</button>
+    <div id="result"></div>
+  </div>
+
+  <div class="section">
+    <h2>📈 함수 그래프 그리기</h2>
+    <div class="help-text">
+      사용 가능한 함수: x^2, sin(x), cos(x), tan(x), log(x), sqrt(x), abs(x), exp(x) 등<br>
+      예시: x^2 + 2*x - 1, sin(x) * cos(x), log(x + 1)
+    </div>
+    <div id="functions">
+      <div class="function-input">
+        <div class="color-indicator" style="background-color: hsl(0, 70%, 50%);"></div>
+        <input type="text" placeholder="함수 이름 (예: f(x))" class="label">
+        <input type="text" placeholder="함수식 입력 (예: x^2)" class="func">
+        <button class="remove-btn" onclick="removeFunctionInput(this)">삭제</button>
+      </div>
+    </div>
+    <button onclick="addFunctionInput()">함수 추가 ➕</button>
+    <button onclick="plotGraph()">그래프 그리기 📊</button>
+    <button onclick="clearGraph()">그래프 초기화 🗑️</button>
+    <div id="error-display"></div>
+    <div id="plot" style="cursor: crosshair; margin: 20px 0;"></div>
+  </div>
+
+
+
+  <script>
+    function calculate() {
+      const n1 = parseFloat(document.getElementById("num1").value);
+      const n2 = parseFloat(document.getElementById("num2").value);
+      const op = document.getElementById("operation").value;
+      let result;
+
+      if (isNaN(n1) && op !== "factorial") {
+        document.getElementById("result").textContent = "숫자를 입력하세요.";
+        return;
+      }
+
+      switch (op) {
+        case "add": result = n1 + n2; break;
+        case "subtract": result = n1 - n2; break;
+        case "multiply": result = n1 * n2; break;
+        case "divide": result = n2 !== 0 ? n1 / n2 : "0으로 나눌 수 없습니다."; break;
+        case "power": result = Math.pow(n1, n2); break;
+        case "sqrt": result = n1 >= 0 ? Math.sqrt(n1) : "음수는 제곱근이 없습니다."; break;
+        case "log": result = n1 > 0 ? Math.log10(n1) : "양수만 로그 계산 가능."; break;
+        case "ln": result = n1 > 0 ? Math.log(n1) : "양수만 자연로그 계산 가능."; break;
+        case "factorial":
+          if (n1 < 0 || !Number.isInteger(n1)) {
+            result = "음수 또는 소수의 팩토리얼은 정의되지 않음.";
+          } else {
+            result = 1;
+            for (let i = 2; i <= n1; i++) result *= i;
+          }
+          break;
+      }
+
+      document.getElementById("result").textContent = `결과: ${result}`;
+    }
+
+    function addFunctionInput() {
+      const container = document.getElementById("functions");
+      const functionCount = container.children.length;
+      const color = `hsl(${functionCount * 60}, 70%, 50%)`;
+      
+      const div = document.createElement("div");
+      div.className = "function-input";
+      div.innerHTML = `
+        <div class="color-indicator" style="background-color: ${color};"></div>
+        <input type="text" placeholder="함수 이름 (예: f(x))" class="label">
+        <input type="text" placeholder="함수식 입력 (예: x^2)" class="func">
+        <button class="remove-btn" onclick="removeFunctionInput(this)">삭제</button>
+      `;
+      container.appendChild(div);
+      updateColorIndicators();
+    }
+
+    function removeFunctionInput(button) {
+      const functionInput = button.parentElement;
+      functionInput.remove();
+      updateColorIndicators();
+    }
+
+    function updateColorIndicators() {
+      const functionInputs = document.querySelectorAll(".function-input");
+      functionInputs.forEach((input, index) => {
+        const colorIndicator = input.querySelector(".color-indicator");
+        const color = `hsl(${index * 60}, 70%, 50%)`;
+        colorIndicator.style.backgroundColor = color;
+      });
+    }
+
+    function showError(message) {
+      const errorDiv = document.getElementById("error-display");
+      errorDiv.innerHTML = `<div class="error-message">${message}</div>`;
+      setTimeout(() => {
+        errorDiv.innerHTML = '';
+      }, 5000);
+    }
+
+    function plotGraph() {
+      const functionInputs = document.querySelectorAll(".func");
+      const labelInputs = document.querySelectorAll(".label");
+      const data = [];
+      let hasValidFunction = false;
+
+      // 함수 데이터 처리
+      for (let i = 0; i < functionInputs.length; i++) {
+        const expr = functionInputs[i].value.trim();
+        const label = labelInputs[i].value.trim() || `f${i+1}(x)`;
+
+        if (expr) {
+          try {
+            // 함수식 검증을 위한 임시 테스트
+            const testExpr = expr.replace(/\^/g, '**'); // ^ 를 ** 로 변환
+            new Function('x', `return ${testExpr}`)(1); // 테스트 실행
+            
+            data.push({
+              fn: expr,
+              label: label,
+              graphType: 'polyline',
+              color: `hsl(${i * 60}, 70%, 50%)`
+            });
+            hasValidFunction = true;
+          } catch (error) {
+            showError(`함수식 오류 (${label}): "${expr}"<br>올바른 예시: x^2, sin(x), cos(x), x^2 + 2*x - 1`);
+            return;
+          }
+        }
+      }
+
+      if (!hasValidFunction) {
+        showError("함수식을 입력해주세요.");
+        return;
+      }
+
+      try {
+        document.getElementById("error-display").innerHTML = '';
+        functionPlot({
+          target: '#plot',
+          width: 600,
+          height: 400,
+          grid: true,
+          xAxis: { 
+            label: 'x',
+            domain: [-10, 10]
+          },
+          yAxis: { 
+            label: 'y',
+            domain: [-10, 10]
+          },
+          data: data,
+          tip: {
+            xLine: true,
+            yLine: true,
+            renderer: function(x, y, index) {
+              const roundedX = Math.round(x * 100) / 100;
+              const roundedY = Math.round(y * 100) / 100;
+              const functionLabel = data[index] ? data[index].label : '';
+              return `${functionLabel} : ${roundedX},${roundedY}`;
+            }
+          }
+        });
+      } catch (err) {
+        showError("그래프 그리기 오류가 발생했습니다. 함수식을 확인해주세요.");
+        console.error(err);
+      }
+    }
+
+    function clearGraph() {
+      document.getElementById('plot').innerHTML = '';
+      document.getElementById("error-display").innerHTML = '';
+    }
+
+    function updateClock() {
+      const now = new Date();
+      const timeStr = now.toLocaleTimeString("ko-KR");
+      document.getElementById("clock").textContent = "현재 시각: " + timeStr;
+    }
+    
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // 초기 그래프 설정
+    window.addEventListener('load', function() {
+      setTimeout(() => {
+        plotGraph();
+      }, 100);
+    });
+  </script>
+
+</body>
+</html>
